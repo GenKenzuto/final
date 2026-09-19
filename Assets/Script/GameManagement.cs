@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 public class MazeManager : MonoBehaviour
@@ -10,17 +11,50 @@ public class MazeManager : MonoBehaviour
 
     private bool hasKey = false;
 
-    void Awake() // เปลี่ยนเป็น Awake เพื่อสร้าง Player ให้เสร็จก่อนที่ Start ของสคริปต์อื่นจะทำงาน
+    void Awake()
     {
-        if (Instance == null) Instance = this;
-
-        if (playerPrefab != null && spawnPoint != null)
+        if (Instance == null)
         {
-            Instantiate(playerPrefab, spawnPoint.position, spawnPoint.rotation);
+            Instance = this;
+        }
+
+        if (playerPrefab == null || spawnPoint == null)
+        {
+            Debug.LogError(
+                "กรุณากำหนด Player Prefab และ Spawn Point ใน Inspector!"
+            );
+            return;
+        }
+
+        // สร้าง Player เหนือแผ่น Spawn Point
+        GameObject player = Instantiate(
+     playerPrefab,
+     spawnPoint.position,
+     spawnPoint.rotation
+ );
+
+        // ค้นหากล้องหลักใน Scene
+        Camera mainCamera = Camera.main;
+
+        if (mainCamera != null)
+        {
+            PlayerCameraController cameraController =
+                mainCamera.GetComponent<PlayerCameraController>();
+
+            if (cameraController != null)
+            {
+                cameraController.SetTarget(player.transform);
+            }
+            else
+            {
+                Debug.LogError(
+                    "ไม่พบ PlayerCameraController บนกล้องหลัก!"
+                );
+            }
         }
         else
         {
-            Debug.LogWarning("กรุณาใส่ Player Prefab หรือ Spawn Point ใน Inspector ให้ครบถ้วน!");
+            Debug.LogError("ไม่พบกล้อง MainCamera!");
         }
     }
 

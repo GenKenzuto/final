@@ -26,6 +26,12 @@ public class PlayerCameraController : MonoBehaviour
         }
     }
 
+    public void SetTarget(Transform target)
+    {
+        playerBody = target;
+    }
+
+
     void LateUpdate() // เปลี่ยนเป็น LateUpdate เพื่อให้กล้องขยับตามหลัง Player ลดอาการกล้องตุก
     {
         if (playerBody == null)

@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -5,42 +6,74 @@ public class Player : MonoBehaviour
 {
     public Rigidbody rb;
     public InputAction playerInput;
-    public float suPeed = 100f;
+    public float suPeed = 10f;
+
+    private Vector2 inputDirection;
 
     private void Start()
     {
         playerInput.Enable();
+
+        // ตรวจสอบว่า Rigidbody ถูกกำหนดแล้ว
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
         if (Camera.main == null) return;
 
-        Vector2 inputDirection = playerInput.ReadValue<Vector2>();
+        inputDirection = playerInput.ReadValue<Vector2>();
 
-        // 1. ดึงทิศทาง Forward และ Right ของกล้องมา
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
 
-        // 2. ล็อกแกน Y ให้เป็น 0 เพื่อไม่ให้เคลื่อนที่ในแนวตั้ง
         camForward.y = 0f;
         camRight.y = 0f;
 
-        // 3. ปรับค่า Vector ให้มีความยาว 1 เท่าเดิม
         camForward.Normalize();
         camRight.Normalize();
 
-        // 4. คำนวณทิศทางเดินแนวราบเท่านั้น
-        Vector3 moveDirection = (camForward * inputDirection.y) + (camRight * inputDirection.x);
+        Vector3 moveDirection =
+            camForward * inputDirection.y +
+            camRight * inputDirection.x;
 
-        transform.forward = camForward;
+        if (moveDirection.sqrMagnitude > 0f)
+            transform.forward = camForward;
+    }
 
-        rb.AddForce(moveDirection * suPeed, ForceMode.Acceleration);
-        rb.maxLinearVelocity = suPeed;
+    private void FixedUpdate()
+    {
+        if (rb == null || Camera.main == null) return;
 
-        if (inputDirection == Vector2.zero)
+        Vector3 camForward = Camera.main.transform.forward;
+        Vector3 camRight = Camera.main.transform.right;
+
+        camForward.y = 0f;
+        camRight.y = 0f;
+
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 moveDirection =
+            camForward * inputDirection.y +
+            camRight * inputDirection.x;
+
+        if (inputDirection != Vector2.zero)
         {
-            rb.linearVelocity = Vector3.zero;
+            rb.AddForce(
+                moveDirection * suPeed,
+                ForceMode.Acceleration
+            );
+        }
+        else
+        {
+            // หยุดเฉพาะแนวราบ ไม่หยุดการตก
+            rb.linearVelocity = new Vector3(
+                0f,
+                rb.linearVelocity.y,
+                0f
+            );
         }
     }
 

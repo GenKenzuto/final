@@ -20,8 +20,10 @@ public class MazeManager : MonoBehaviour
     public TMP_Text winnerTimeText;
 
     public GameObject TimingPanel;
-    private bool hasWon = false;
+    public bool hasWon = false;
 
+    private float bestTime;
+    private bool hasBestTime = false;
     private float elapsedTime = 0f;
     private bool timerRunning = false;
     public static MazeManager Instance;
@@ -30,6 +32,7 @@ public class MazeManager : MonoBehaviour
 
     void Awake()
     {
+        hasWon = false;
         if (TimingPanel != null)
             TimingPanel.SetActive(true);
 
@@ -40,6 +43,9 @@ public class MazeManager : MonoBehaviour
         // เริ่มจับเวลา
         elapsedTime = 0f;
         timerRunning = true;
+        bestTime = PlayerPrefs.GetFloat("BestTime", 0f);
+        hasBestTime = PlayerPrefs.GetInt("HasBestTime", 0) == 1;
+
         if (KeyPanel != null)
             KeyPanel.SetActive(false);
 
@@ -131,24 +137,49 @@ public class MazeManager : MonoBehaviour
             // หยุดจับเวลาเมื่อชนะ
             timerRunning = false;
             hasWon = true;
-
+            WinnerPanel.SetActive(true);
             string finalTime = FormatTime(elapsedTime);
+            
 
-            if (TimingPanel != null)
-                TimingPanel.SetActive(false);
+            if (elapsedTime < bestTime)
+            {
+                // เก็บค่า Best เดิมเอาไว้ก่อน
+                string oldRecord = FormatTime(bestTime);
 
-            if (WinnerPanel != null)
-                WinnerPanel.SetActive(true);
+                // อัปเดต Best Time
+                bestTime = elapsedTime;
+                PlayerPrefs.SetFloat("BestTime", bestTime);
+                PlayerPrefs.Save();
 
-            if (winnerTimeText != null)
-                winnerTimeText.text = "Your Time: " + finalTime;
-
-            Debug.Log("ยินดีด้วย! คุณผ่านเขาวงกตแล้ว");
-            Debug.Log("เวลาที่ใช้: " + finalTime);
+                // แสดงผลกรณีทำลายสถิติ
+                if (winnerTimeText != null)
+                {
+                    winnerTimeText.text =
+                        "NEW RECORD: " + finalTime + "\n" +
+                        "\nOLD RECORD: " + oldRecord;
+                }
+            }
+            else if (!hasBestTime)
+            {
+                // แสดงผลกรณีไม่มีสถิติ
+                if (winnerTimeText != null)
+                {
+                    winnerTimeText.text = "BEST TIME: " + finalTime;
+                }
+            }
+            else
+            {
+                // แสดงผลกรณีไม่ทำลายสถิติ
+                if (winnerTimeText != null)
+                {
+                    winnerTimeText.text =
+                        "NEW RECORD: " + finalTime +"\n"+
+                        "\nBEST RECORD: " + FormatTime(bestTime);
+                }
+            }
+            PlayerPrefs.SetInt("HasBestTime", 1);
+            PlayerPrefs.Save();
         }
-        else
-        {
-            Debug.Log("ประตูยังล็อกอยู่! ต้องหากุญแจก่อน");
-        }
+        
     }
 }

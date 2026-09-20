@@ -137,6 +137,7 @@ public class MazeManager : MonoBehaviour
             // หยุดจับเวลาเมื่อชนะ
             timerRunning = false;
             hasWon = true;
+            TimingPanel.SetActive(false);
             WinnerPanel.SetActive(true);
             string finalTime = FormatTime(elapsedTime);
             
